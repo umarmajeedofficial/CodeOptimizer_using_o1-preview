@@ -81,23 +81,29 @@ st.sidebar.title("Input Section")
 
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
-user_question = st.sidebar.text_area("Enter your question:", placeholder="Type your question here...", height=150)
+explanation_output = st.sidebar.text_area("Code Explanation:", height=150, value="", placeholder="Code explanation will appear here...")
 
-# Submit button at the bottom of the sidebar
-if st.sidebar.button("Submit"):
-    with st.spinner("Thinking..."):
-        code = generate_code(user_question, language)
-        explanation = explain_code(code)  # Get explanation using O1 model
-        
-        # Display the generated code and explanation
-        st.sidebar.subheader("Code Explanation:")
-        st.sidebar.text_area("Explanation:", value=explanation, height=200)
+# Main area for generated code and question input
+st.subheader("Generated Code:")
+code_container = st.empty()  # Placeholder for generated code
 
-        # Add a copy button for the generated code
-        st.subheader("Generated Code:")
-        code_container = st.empty()  # Placeholder for generated code
-        code_container.code(code, language=language.lower())
-        st.button("Copy Code", on_click=lambda: st.session_state.clipboard.copy(code))
+# Use a container to allow scrolling
+with st.container():
+    # Create a placeholder for the input field at the bottom
+    user_question = st.text_area("Enter your question:", placeholder="Type your question here...", height=150)
+    
+    # Submit button at the bottom of the main content
+    if st.button("Submit"):
+        with st.spinner("Thinking..."):
+            code = generate_code(user_question, language)
+            explanation = explain_code(code)  # Get explanation using O1 model
+            
+            # Display the generated code and explanation
+            code_container.code(code, language=language.lower())
+            explanation_output = st.sidebar.text_area("Code Explanation:", value=explanation, height=200)
+
+            # Add a copy button for the generated code
+            st.button("Copy Code", on_click=lambda: st.session_state.clipboard.copy(code))
 
 # Custom CSS to enhance the UI
 st.markdown("""
@@ -124,6 +130,13 @@ st.markdown("""
         border-radius: 5px;
         padding: 10px;
         margin-bottom: 10px;
+    }
+    .sticky-bottom {
+        position: sticky;
+        bottom: 0;
+        background-color: white;
+        padding: 10px;
+        z-index: 1;
     }
 </style>
 """, unsafe_allow_html=True)
