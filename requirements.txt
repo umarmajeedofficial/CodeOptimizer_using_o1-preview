@@ -1,4 +1,5 @@
 streamlit
 together
 openai
-
+textblob
+nltk
