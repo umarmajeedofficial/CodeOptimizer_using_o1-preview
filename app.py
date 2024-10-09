@@ -1,7 +1,6 @@
 import streamlit as st
 from together import Together
 from openai import OpenAI
-from PIL import Image
 
 # Initialize the clients for the models with API keys from Streamlit secrets
 together_client = Together(base_url="https://api.aimlapi.com/v1", api_key=st.secrets["together"]["api_key"])
@@ -82,41 +81,29 @@ st.sidebar.title("Input Section")
 
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
+explanation_output = st.sidebar.text_area("Code Explanation:", height=150, value="", placeholder="Code explanation will appear here...")
 
-# Main area for generated code
+# Main area for generated code and question input
 st.subheader("Generated Code:")
 code_container = st.empty()  # Placeholder for generated code
 
-# Container for the main content to enable scrolling
+# Use a container to allow scrolling
 with st.container():
-    # Add a spacer for layout adjustment
-    st.write("")  # This adds a little space before the code output
+    # Create a placeholder for the input field at the bottom
+    user_question = st.text_area("Enter your question:", placeholder="Type your question here...", height=150)
+    
+    # Submit button at the bottom of the main content
+    if st.button("Submit"):
+        with st.spinner("Thinking..."):
+            code = generate_code(user_question, language)
+            explanation = explain_code(code)  # Get explanation using O1 model
+            
+            # Display the generated code and explanation
+            code_container.code(code, language=language.lower())
+            explanation_output = st.sidebar.text_area("Code Explanation:", value=explanation, height=200)
 
-    # Display the generated code
-    code_display = code_container.code("", language="python")  # Initialize with empty code
-
-    # Input field and submit button at the bottom
-    user_question = st.text_area("Enter your question:", placeholder="Type your question here...", height=150, 
-                                  max_chars=500)  # Set max characters if desired
-
-    # Button to submit the question
-    col1, col2 = st.columns([4, 1])  # Create two columns for the button
-    with col1:
-        # Reduce the width of the text area
-        st.text_area(" ", value=user_question, height=150, placeholder="Type your question here...", key="input_area", max_chars=500)
-
-    with col2:
-        # Round button with icon (using a placeholder image for the icon)
-        submit_button = st.button("", key="submit_button", help="Submit your question", 
-                                   on_click=None)
-        if submit_button:
-            with st.spinner("Thinking..."):
-                code = generate_code(user_question, language)
-                explanation = explain_code(code)  # Get explanation using O1 model
-                
-                # Display the generated code and explanation
-                code_container.code(code, language=language.lower())
-                st.sidebar.text_area("Code Explanation:", value=explanation, height=200)
+            # Add a copy button for the generated code
+            st.button("Copy Code", on_click=lambda: st.session_state.clipboard.copy(code))
 
 # Custom CSS to enhance the UI
 st.markdown("""
@@ -129,8 +116,8 @@ st.markdown("""
         background-color: #4CAF50; /* Green */
         color: white;
         border: none;
-        border-radius: 50%; /* Make button round */
-        padding: 10px 20px; /* Adjust padding for roundness */
+        border-radius: 5px;
+        padding: 10px 20px;
         text-align: center;
         text-decoration: none;
         display: inline-block;
@@ -139,14 +126,17 @@ st.markdown("""
         cursor: pointer;
     }
     .stTextInput, .stSelectbox, .stTextArea {
-        width: 80%; /* Shorter width for the input field */
+        width: 100%;
         border-radius: 5px;
         padding: 10px;
         margin-bottom: 10px;
     }
+    .sticky-bottom {
+        position: sticky;
+        bottom: 0;
+        background-color: white;
+        padding: 10px;
+        z-index: 1;
+    }
 </style>
 """, unsafe_allow_html=True)
-
-# Adding an icon to the button using an image
-image = Image.open("path_to_your_icon.png")  # Replace with your icon image path
-st.image(image, caption="", use_column_width=True)  # Display the icon above the button if needed
