@@ -70,15 +70,16 @@ st.set_page_config(page_title="Optimized Code Generator", layout="wide")
 # Create a sidebar layout for inputs
 st.sidebar.title("Input Section")
 
+# Button to start a new chat at the top of the sidebar
+if st.sidebar.button("Start New Chat"):
+    st.session_state.messages = []  # Clear chat history
+    st.experimental_rerun()  # Refresh the page to reset the state
+
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
 
 # Create a session state to maintain chat history
 if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-# Function to clear chat history
-def start_new_chat():
     st.session_state.messages = []
 
 # Main area for generated code and question input
@@ -112,11 +113,6 @@ with st.container():
         chat_container.empty()  # Clear previous chat
         for msg in st.session_state.messages:
             st.markdown(f"**{msg['role'].capitalize()}:** {msg['content']}")
-    
-    # Button to start a new chat
-    if st.button("Start New Chat"):
-        start_new_chat()
-        st.experimental_rerun()  # Refresh the page to reset the state
 
 # Custom CSS to enhance the UI
 st.markdown("""
