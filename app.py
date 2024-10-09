@@ -81,7 +81,7 @@ st.sidebar.title("Input Section")
 
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
-explanation_output = st.sidebar.text_area("Code Explanation:", height=150, value="", placeholder="Code explanation will appear here...")
+explanation_output = st.sidebar.text_area("Code Explanation:", height=200, value="", placeholder="Code explanation will appear here...", disabled=True)
 
 # Main area for generated code and question input
 st.subheader("Generated Code:")
@@ -98,12 +98,11 @@ with st.container():
             code = generate_code(user_question, language)
             explanation = explain_code(code)  # Get explanation using O1 model
             
-            # Display the generated code and explanation
+            # Display the generated code
             code_container.code(code, language=language.lower())
-            explanation_output = st.sidebar.text_area("Code Explanation:", value=explanation, height=200)
-
-            # Add a copy button for the generated code
-            st.button("Copy Code", on_click=lambda: st.session_state.clipboard.copy(code))
+            
+            # Set the explanation output in the sidebar
+            st.sidebar.text_area("Code Explanation:", value=explanation, height=200, disabled=True)
 
 # Custom CSS to enhance the UI
 st.markdown("""
@@ -130,13 +129,6 @@ st.markdown("""
         border-radius: 5px;
         padding: 10px;
         margin-bottom: 10px;
-    }
-    .sticky-bottom {
-        position: sticky;
-        bottom: 0;
-        background-color: white;
-        padding: 10px;
-        z-index: 1;
     }
 </style>
 """, unsafe_allow_html=True)
