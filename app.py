@@ -81,7 +81,7 @@ st.sidebar.title("Input Section")
 
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
-explanation_output = st.sidebar.text_area("Code Explanation:", height=200, value="", placeholder="Code explanation will appear here...", disabled=True)
+#explanation_output = st.sidebar.text_area("Code Explanation:", height=200, value="", placeholder="Code explanation will appear here...", disabled=True)
 
 # Main area for generated code and question input
 st.subheader("Generated Code:")
