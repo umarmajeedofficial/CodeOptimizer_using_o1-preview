@@ -81,29 +81,35 @@ st.sidebar.title("Input Section")
 
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
-explanation_output = st.sidebar.text_area("Code Explanation:", height=150, value="", placeholder="Code explanation will appear here...")
 
-# Main area for generated code and question input
+# Main area for generated code
 st.subheader("Generated Code:")
 code_container = st.empty()  # Placeholder for generated code
 
-# Use a container to allow scrolling
+# Container for the main content to enable scrolling
 with st.container():
-    # Create a placeholder for the input field at the bottom
+    # Add a spacer for layout adjustment
+    st.write("")  # This adds a little space before the code output
+
+    # Display the generated code
+    code_display = code_container.code("", language="python")  # Initialize with empty code
+
+    # Input field and submit button at the bottom
     user_question = st.text_area("Enter your question:", placeholder="Type your question here...", height=150)
     
-    # Submit button at the bottom of the main content
-    if st.button("Submit"):
-        with st.spinner("Thinking..."):
-            code = generate_code(user_question, language)
-            explanation = explain_code(code)  # Get explanation using O1 model
-            
-            # Display the generated code and explanation
-            code_container.code(code, language=language.lower())
-            explanation_output = st.sidebar.text_area("Code Explanation:", value=explanation, height=200)
-
-            # Add a copy button for the generated code
-            st.button("Copy Code", on_click=lambda: st.session_state.clipboard.copy(code))
+    # Button to submit the question
+    col1, col2 = st.columns([3, 1])  # Create two columns for the button
+    with col1:
+        pass  # Empty column for spacing
+    with col2:
+        if st.button("Submit"):
+            with st.spinner("Thinking..."):
+                code = generate_code(user_question, language)
+                explanation = explain_code(code)  # Get explanation using O1 model
+                
+                # Display the generated code and explanation
+                code_container.code(code, language=language.lower())
+                st.sidebar.text_area("Code Explanation:", value=explanation, height=200)
 
 # Custom CSS to enhance the UI
 st.markdown("""
@@ -130,13 +136,6 @@ st.markdown("""
         border-radius: 5px;
         padding: 10px;
         margin-bottom: 10px;
-    }
-    .sticky-bottom {
-        position: sticky;
-        bottom: 0;
-        background-color: white;
-        padding: 10px;
-        z-index: 1;
     }
 </style>
 """, unsafe_allow_html=True)
