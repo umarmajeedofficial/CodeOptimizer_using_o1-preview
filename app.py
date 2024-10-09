@@ -76,27 +76,30 @@ languages = ["Python", "Java", "C++", "JavaScript", "Go", "Ruby", "Swift"]
 # Create the Streamlit interface
 st.set_page_config(page_title="Optimized Code Generator", layout="wide")
 
-st.title("Optimized Code Generator")
-st.subheader("Enter a programming question, select a programming language, and get optimized code with explanations.")
+# Create a sidebar layout for inputs
+st.sidebar.title("Input Section")
 
-# Input fields
-user_question = st.text_input("Enter your question:", placeholder="Type your question here...")
-language = st.selectbox("Select Programming Language:", options=languages, index=0)
+# Sidebar inputs
+language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
+user_question = st.sidebar.text_area("Enter your question:", placeholder="Type your question here...", height=150)
 
-# Submit button
-if st.button("Submit"):
+# Submit button at the bottom of the sidebar
+if st.sidebar.button("Submit"):
     with st.spinner("Thinking..."):
         code = generate_code(user_question, language)
         explanation = explain_code(code)  # Get explanation using O1 model
         
-        # Display the results
-        st.subheader("Generated Code:")
-        st.code(code, language=language.lower())
-        
-        st.subheader("Code Explanation:")
-        st.text_area("Explanation:", value=explanation, height=200)
+        # Display the generated code and explanation
+        st.sidebar.subheader("Code Explanation:")
+        st.sidebar.text_area("Explanation:", value=explanation, height=200)
 
-# Add some custom CSS to enhance UI
+        # Add a copy button for the generated code
+        st.subheader("Generated Code:")
+        code_container = st.empty()  # Placeholder for generated code
+        code_container.code(code, language=language.lower())
+        st.button("Copy Code", on_click=lambda: st.session_state.clipboard.copy(code))
+
+# Custom CSS to enhance the UI
 st.markdown("""
 <style>
     .streamlit-expanderHeader {
@@ -116,7 +119,7 @@ st.markdown("""
         margin: 4px 2px;
         cursor: pointer;
     }
-    .stTextInput, .stSelectbox {
+    .stTextInput, .stSelectbox, .stTextArea {
         width: 100%;
         border-radius: 5px;
         padding: 10px;
@@ -124,4 +127,3 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-
