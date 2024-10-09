@@ -72,8 +72,8 @@ st.sidebar.title("Input Section")
 
 # Button to start a new chat at the top of the sidebar
 if st.sidebar.button("Start New Chat"):
-    st.session_state.messages = []  # Clear chat history
-    st.experimental_rerun()  # Refresh the page to reset the state
+    # Clear the chat history
+    st.session_state.messages = []  
 
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
