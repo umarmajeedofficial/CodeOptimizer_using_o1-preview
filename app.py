@@ -72,8 +72,9 @@ st.sidebar.title("Input Section")
 
 # Button to start a new chat at the top of the sidebar
 if st.sidebar.button("Start New Chat"):
-    # Clear the chat history
+    # Clear the chat history and input field
     st.session_state.messages = []  
+    st.session_state.user_question = ""  # Clear the input field
 
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
@@ -81,6 +82,8 @@ language = st.sidebar.selectbox("Select Programming Language:", options=language
 # Create a session state to maintain chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "user_question" not in st.session_state:
+    st.session_state.user_question = ""  # Initialize user_question state
 
 # Main area for generated code and question input
 st.subheader("Chat History:")
@@ -93,7 +96,14 @@ for msg in st.session_state.messages:
 # Create a container for user input
 with st.container():
     # User input field
-    user_question = st.text_area("Enter your question:", placeholder="Type your question here...", height=150)
+    user_question = st.text_area("Enter your question:", 
+                                  value=st.session_state.user_question, 
+                                  placeholder="Type your question here...", 
+                                  height=150)
+
+    # Update session state when user types
+    if user_question != st.session_state.user_question:
+        st.session_state.user_question = user_question
     
     # Submit button to send the question
     if st.button("Submit"):
@@ -109,6 +119,8 @@ with st.container():
             st.session_state.messages.append({"role": "assistant", "content": code})
             st.session_state.messages.append({"role": "assistant", "content": explanation})
         
+        # Clear the input field after submission
+        st.session_state.user_question = ""  # Clear the input after submitting
         # Update chat history display
         chat_container.empty()  # Clear previous chat
         for msg in st.session_state.messages:
