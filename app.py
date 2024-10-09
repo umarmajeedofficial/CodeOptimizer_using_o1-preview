@@ -6,21 +6,12 @@ from openai import OpenAI
 together_client = Together(base_url="https://api.aimlapi.com/v1", api_key=st.secrets["together"]["api_key"])
 openai_client = OpenAI(api_key=st.secrets["openai"]["api_key"], base_url="https://api.aimlapi.com")
 
-def generate_code(user_question, language):
-    # Step 1: Use Llama model to get the processed question
+# Function to generate code based on user question
+def generate_code(messages, language):
+    # Step 1: Use Llama model to process the conversation
     response = together_client.chat.completions.create(
         model="meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": user_question,
-                    }
-                ],
-            }
-        ],
+        messages=messages,
         max_tokens=10000,
     )
     
@@ -49,8 +40,8 @@ def generate_code(user_question, language):
     code = openai_response.choices[0].message.content.strip()
     return code
 
+# Function to explain the generated code
 def explain_code(code):
-    # Step 1: Use OpenAI o1 model to explain the generated code line by line
     instruction = (
         f"As a highly skilled software engineer, please provide a detailed line-by-line explanation of the following code:\n\n"
         f"{code}\n\nMake sure to explain what each line does and why it is used."
@@ -81,28 +72,51 @@ st.sidebar.title("Input Section")
 
 # Sidebar inputs
 language = st.sidebar.selectbox("Select Programming Language:", options=languages, index=0)
-#explanation_output = st.sidebar.text_area("Code Explanation:", height=200, value="", placeholder="Code explanation will appear here...", disabled=True)
+
+# Create a session state to maintain chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Function to clear chat history
+def start_new_chat():
+    st.session_state.messages = []
 
 # Main area for generated code and question input
-st.subheader("Generated Code:")
-code_container = st.empty()  # Placeholder for generated code
+st.subheader("Chat History:")
+chat_container = st.empty()  # Placeholder for chat history
 
-# Use a container to allow scrolling
+# Display chat messages
+for msg in st.session_state.messages:
+    st.markdown(f"**{msg['role'].capitalize()}:** {msg['content']}")
+
+# Create a container for user input
 with st.container():
-    # Create a placeholder for the input field at the bottom
+    # User input field
     user_question = st.text_area("Enter your question:", placeholder="Type your question here...", height=150)
     
-    # Submit button at the bottom of the main content
+    # Submit button to send the question
     if st.button("Submit"):
+        # Add user's message to session state
+        st.session_state.messages.append({"role": "user", "content": user_question})
+        
         with st.spinner("Thinking..."):
-            code = generate_code(user_question, language)
-            explanation = explain_code(code)  # Get explanation using O1 model
+            # Generate code and explanation
+            code = generate_code(st.session_state.messages, language)
+            explanation = explain_code(code)
             
-            # Display the generated code
-            code_container.code(code, language=language.lower())
-            
-            # Set the explanation output in the sidebar
-            st.sidebar.text_area("Code Explanation:", value=explanation, height=200, disabled=True)
+            # Add model responses to session state
+            st.session_state.messages.append({"role": "assistant", "content": code})
+            st.session_state.messages.append({"role": "assistant", "content": explanation})
+        
+        # Update chat history display
+        chat_container.empty()  # Clear previous chat
+        for msg in st.session_state.messages:
+            st.markdown(f"**{msg['role'].capitalize()}:** {msg['content']}")
+    
+    # Button to start a new chat
+    if st.button("Start New Chat"):
+        start_new_chat()
+        st.experimental_rerun()  # Refresh the page to reset the state
 
 # Custom CSS to enhance the UI
 st.markdown("""
